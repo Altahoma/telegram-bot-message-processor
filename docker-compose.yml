@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  app:
+    container_name: message-processor-telegram
+    build:
+      context: .
+    command: >
+      sh -c "./wait-for-it.sh --timeout=60 rabbitmq:5672 -- python consumer.py &
+             python telegram_bot.py"
+    env_file:
+      - .env
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    container_name: rabbitmq-telegram
+    image: rabbitmq:3.9.29-management
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${AMQP_USER}
+      RABBITMQ_DEFAULT_PASS: ${AMQP_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${AMQP_VHOST}
+    ports:
+      - ${AMQP_PORT}:5672
